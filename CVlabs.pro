@@ -11,10 +11,19 @@ TEMPLATE = app
 
 SOURCES += main.cpp \
     matrix.cpp \
-    image.cpp
+    image.cpp \
+    pyramid.cpp \
+    pyramidlvl.cpp \
+    pyramidoctave.cpp \
+    filters.cpp
 
 DEFINES += QT_DEPRECATED_WARNINGS
 
 HEADERS += \
     matrix.h \
-    image.h
+    image.h \
+    kernels.h \
+    pyramid.h \
+    pyramidlvl.h \
+    pyramidoctave.h \
+    filters.h

@@ -18,18 +18,36 @@ class Image : public Matrix
 public:
     Image(int height, int width, Border border = Border::Wrap);
     Image(const QImage& image, Border border = Border::Wrap);
+    Image(const Image& image);
 
-    double get(int row, int col);
+    Image& operator=(const Image& image){
+        setHeight(image.getHeight());
+        setWidth(image.getWidth());
+        initializeIntensityMap();
+
+        for(int i = 0; i < getHeight(); i++)
+            for(int j = 0; j < getWidth(); j++)
+                set(i, j, image.get(i, j));
+
+        return *this;
+    }
+
+    double get(int row, int col) const;
 
     Border getBorderE();
+    Border getBorderE() const;
     void setBorderE(Border border);
 
-    Image getNormalize();
+    Image getNormalized() const;
+    Image getDownscale() const;
+
+    //void save(QString file);
+    void save(const std::string& file);
 
 private:
-    std::pair<int, int> getCopyIdxs(int row, int col);
-    std::pair<int, int> getMirrorIdxs(int row, int col);
-    std::pair<int, int> getWrapIdxs(int row, int col);
+    std::pair<int, int> getCopyIdxs(int row, int col) const;
+    std::pair<int, int> getMirrorIdxs(int row, int col) const;
+    std::pair<int, int> getWrapIdxs(int row, int col) const;
 
     Border BorderE;
 };
