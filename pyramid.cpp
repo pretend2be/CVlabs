@@ -1,5 +1,6 @@
 #include "pyramid.h"
 #include "filters.h"
+#include "qimagemaker.h"
 
 namespace cv {
 
@@ -50,7 +51,7 @@ void Pyramid::savePyramid(const std::string& file) const{
             auto level = octaves[i].getLevel(j);
             auto name = file + "_" + std::to_string(level.getEffectiveSigma()) +
                     "_" + std::to_string(level.getCurrentSigma()) + ".png";
-            level.getImage().save(name);
+            toQImage(level.getImage()).save(name.c_str());
         }
     }
 }

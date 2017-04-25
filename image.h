@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <QImage>
+#include <QPainter>
 #include "matrix.h"
 
 namespace cv {
@@ -16,8 +17,8 @@ enum class Border{
 class Image : public Matrix
 {
 public:
-    Image(int height, int width, Border border = Border::Wrap);
-    Image(const QImage& image, Border border = Border::Wrap);
+    Image(int height, int width, Border border = Border::Copy);
+    Image(const QImage& image, Border border = Border::Copy);
     Image(const Image& image);
 
     Image& operator=(const Image& image){
@@ -42,7 +43,8 @@ public:
     Image getDownscale() const;
 
     //void save(QString file);
-    void save(const std::string& file);
+    /*void save(const std::string& file);
+    void save(const std::string& file, const poi::IPoints& points);*/
 
 private:
     std::pair<int, int> getCopyIdxs(int row, int col) const;

@@ -15,7 +15,10 @@ SOURCES += main.cpp \
     pyramid.cpp \
     pyramidlvl.cpp \
     pyramidoctave.cpp \
-    filters.cpp
+    filters.cpp \
+    poi.cpp \
+    qimagemaker.cpp \
+    descriptors.cpp
 
 DEFINES += QT_DEPRECATED_WARNINGS
 
@@ -26,4 +29,7 @@ HEADERS += \
     pyramid.h \
     pyramidlvl.h \
     pyramidoctave.h \
-    filters.h
+    filters.h \
+    poi.h \
+    qimagemaker.h \
+    descriptors.h
