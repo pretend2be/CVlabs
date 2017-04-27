@@ -81,6 +81,21 @@ Image SobelGradient(const Image& dx, const Image& dy){
     return result;
 }
 
+Image GradientDirections(const Image& dx, const Image& dy){
+    int H = dx.getHeight(), W = dx.getWidth();
+    Image result(H, W);
+
+    for (int i = 0; i < H; i++) {
+        for (int j = 0; j < W; j++) {
+            auto direction = atan2(dx.get(i, j), dy.get(i, j));
+            direction = direction > 0 ? direction : direction + M_PI * 2;
+            result.set(i, j, direction);
+        }
+    }
+
+    return result;
+}
+
 Image Sharpness(const Image& image){
     Matrix kernel(3, 3, kernelSharpness);
     auto result = Convolution(image, kernel);

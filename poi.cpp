@@ -20,7 +20,7 @@ static double C(const Image& image, int window_size, int x, int y, int dx, int d
 double getDistance(int x1, int y1, int x2, int y2){
     auto x = x1 - x2;
     auto y = y1 - y2;
-    return sqrt(x * x + y * y);
+    return hypot(x, y);
 
 }
 
@@ -116,7 +116,7 @@ IPoints filterPoints(const IPoints& points, int target_quantity){
                 if(i == filter_points.size()) i--;
                 auto dist = getDistance(std::get<0>(filter_points[i]), std::get<1>(filter_points[i]),
                                     std::get<0>(filter_points[j]), std::get<1>(filter_points[j]));
-                if(dist < r && std::get<2>(filter_points[i]) < std::get<2>(filter_points[j]))
+                if(dist < r && std::get<2>(filter_points[i]) < 0.9 * std::get<2>(filter_points[j]))
                     filter_points.erase(filter_points.begin() + i);
             }
         r++;

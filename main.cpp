@@ -9,10 +9,11 @@
 void Lab1();
 void Lab2();
 void Lab3();
+void Lab4();
 
 int main()
 {
-    Lab3();
+    Lab4();
 
     return 0;
 }
@@ -64,9 +65,39 @@ void Lab3(){
     auto pointsMoravec = cv::getPoi(moravec, 0.05, 7);
     auto pointsHarris = cv::getPoi(harris, 0.55, 3);
 
-    cv::drawPoints(original, pointsHarris).save("E:\\Magistr\\CV\\harris.png");
+    cv::drawPoints(original, pointsHarris).save("E:\\Magistr\\CV\\harris1.png");
     cv::drawPoints(original, pointsMoravec).save("E:\\Magistr\\CV\\moravec.png");
-    cv::drawPoints(original, cv::filterPoints(pointsHarris, 200)).save("E:\\Magistr\\CV\\harris_filter.png");
+    cv::drawPoints(original, cv::filterPoints(pointsHarris, 200)).save("E:\\Magistr\\CV\\harris_filter1.png");
     cv::drawPoints(original, cv::filterPoints(pointsMoravec, 200)).save("E:\\Magistr\\CV\\moravec_filter.png");
     printf("done");
+}
+
+void Lab4(){
+    QImage qimage1("E:\\Magistr\\CV\\m.png");
+    QImage qimage2("E:\\Magistr\\CV\\m1.png");
+    cv::Image image1(qimage1);
+    cv::Image image2(qimage2);
+
+    auto harris_first = cv::Harris(image1, 3);
+    auto harris_second = cv::Harris(image2, 3);
+    printf("done");
+
+    auto first_poi = cv::getPoi(harris_first, 0.55, 3);
+    auto second_poi = cv::getPoi(harris_second, 0.55, 3);
+    printf("done");
+
+    auto first_filtered = cv::filterPoints(first_poi, 100);
+    auto second_filtered = cv::filterPoints(second_poi, 100);
+    printf("done");
+
+    auto first_descriptors = cv::getDescriptors(image1, first_filtered, 4, 4, 8);
+    auto second_descriptors = cv::getDescriptors(image2, second_filtered, 4, 4, 8);
+    printf("descriptors done");
+
+    auto matches = cv::getMatches(first_descriptors, second_descriptors);
+    printf("matches done");
+
+    cv::drawMatches(image1, first_filtered, image2, second_filtered, matches).save("E:\\Magistr\\CV\\matches1.png");
+    printf("done");
+
 }

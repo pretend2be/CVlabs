@@ -16,6 +16,13 @@ QImage toQImage(const Image& image){
     return pic;
 }
 
+static void drawAroundPoint(QPainter& painter, int x, int y){
+    painter.drawPoint(x - 1, y);
+    painter.drawPoint(x, y - 1);
+    painter.drawPoint(x + 1, y);
+    painter.drawPoint(x, y + 1);
+}
+
 QImage drawPoints(const Image& image, const IPoints& points){
     auto qimage = toQImage(image);
     auto size = points.size();
@@ -26,10 +33,47 @@ QImage drawPoints(const Image& image, const IPoints& points){
     for(int i = 0; i < size; i++){
         auto y = std::get<0>(points[i]);
         auto x = std::get<1>(points[i]);
-        painter.drawPoint(x - 1, y);
-        painter.drawPoint(x, y - 1);
-        painter.drawPoint(x + 1, y);
-        painter.drawPoint(x, y + 1);
+        drawAroundPoint(painter, x, y);
+    }
+
+    return qimage;
+}
+
+QImage drawMatches(const Image& first_image, const IPoints& first_points,
+                   const Image& second_image, const IPoints& second_points, const Matches& matches){
+
+    int H1 = first_image.getHeight(), W1 = first_image.getWidth();
+    int H2 = second_image.getHeight(), W2 = second_image.getWidth();
+    Image merged_image(std::max(H1, H2), W1 + W2);
+
+    for(int i = 0; i < H1; i++)
+        for(int j = 0; j < W1; j++)
+            merged_image.set(i, j, first_image.get(i,j));
+
+    for(int i = 0; i < H2; i++)
+        for(int j = 0; j < W2; j++)
+            merged_image.set(i, j + W1, second_image.get(i,j));
+
+    auto qimage = toQImage(merged_image);
+
+    QPainter painter(&qimage);
+
+    auto size = matches.size();
+    for(size_t i = 0; i < size; i++){
+        auto x1 = std::get<1>(first_points[matches[i].first]);
+        auto y1 = std::get<0>(first_points[matches[i].first]);
+        auto x2 = std::get<1>(second_points[matches[i].second]);
+        auto y2 = std::get<0>(second_points[matches[i].second]);
+
+        int r = qrand() % 256, g = qrand() % 256, b = qrand() % 256;
+        auto color = QColor(r, g, b);
+
+        painter.setPen(color);
+        painter.drawLine(x1, y1, x2 + W1, y2);
+
+        painter.setPen(color);
+        drawAroundPoint(painter, x1, y1);
+        drawAroundPoint(painter, x2 + W1, y2);
     }
 
     return qimage;

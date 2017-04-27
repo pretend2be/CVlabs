@@ -18,5 +18,6 @@ Image GaussianFilterSeparable(const Image& image, double sigma);
 Image SobelDx(const Image& image);
 Image SobelDy(const Image& image);
 Image SobelGradient(const Image& dx, const Image& dy);
+Image GradientDirections(const Image& dx, const Image& dy);
 
 }
