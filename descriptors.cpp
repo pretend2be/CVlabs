@@ -4,6 +4,15 @@
 
 namespace cv {
 
+static double getVectorSize(const Descriptor& descriptor){
+    double sum = 0;
+    auto size = descriptor.size();
+    for(size_t i = 0; i < size; i++)
+        sum += descriptor[i] * descriptor[i];
+    return sqrt(sum);
+
+}
+
 Descriptors getDescriptors(const Image& image, const IPoints& points,
                            int descriptor_size, int block_size, int histogram_value_number){
     auto sobel_dx = SobelDx(image);
@@ -19,9 +28,9 @@ Descriptors getDescriptors(const Image& image, const IPoints& points,
     Descriptors descriptors;
 
     const auto z = M_PI * 2 / histogram_value_number;
-    auto size = points.size();
+    auto points_size = points.size();
 
-    for(int k = 0; k < size; k++){
+    for(int k = 0; k < points_size; k++){
 
         descriptors.emplace_back(descriptor_value_number, 0);
         auto& descriptor = descriptors.back();
@@ -35,11 +44,11 @@ Descriptors getDescriptors(const Image& image, const IPoints& points,
                 auto gradient_direction = grad_directions.get(u, v);
 
                 auto first_bin_idx = int(gradient_direction / z);
-                auto distance_to_bin_center = gradient_direction - first_bin_idx * z + z / 2;
+                auto distance_to_bin_center = gradient_direction - first_bin_idx * z - z / 2;
                 auto second_bin_idx = distance_to_bin_center > 0 ? first_bin_idx + 1 : first_bin_idx - 1;
 
                 first_bin_idx %= histogram_value_number;
-                second_bin_idx %= histogram_value_number;
+                second_bin_idx = (second_bin_idx % histogram_value_number + histogram_value_number) % histogram_value_number;
 
                 auto histogram_start_idx = (i / grid_size * j / block_size) * histogram_value_number;
 
@@ -50,6 +59,23 @@ Descriptors getDescriptors(const Image& image, const IPoints& points,
                 descriptor[size_t(histogram_start_idx + second_bin_idx)] += second_percent * gradient_value;
             }
     }
+
+    for(auto& descriptor : descriptors){
+        auto vector_size = getVectorSize(descriptor);
+        for(size_t i = 0; i < descriptor_value_number; i++){
+            descriptor[i] /= vector_size;
+
+            if(descriptor[i] > 0.2)
+                descriptor[i] = 0.2;
+        }
+
+        vector_size = getVectorSize(descriptor);
+        for(size_t i = 0; i < descriptor_value_number; i++){
+            descriptor[i] /= vector_size;
+        }
+    }
+
+
 
     return descriptors;
 }
@@ -80,7 +106,7 @@ Matches getMatches(const Descriptors& first, const Descriptors& second){
                 min_index = j;
             }
         }
-        if( min_distance < 0.4)
+        if( min_distance < 0.3)
             matches.emplace_back(i, min_index);
     }
 
