@@ -79,4 +79,43 @@ QImage drawMatches(const Image& first_image, const IPoints& first_points,
     return qimage;
 }
 
+QImage drawMatches(const Image& first_image, const Blobs& first_blobs,
+                   const Image& second_image, const Blobs& second_blobs, const Matches& matches){
+
+    int H1 = first_image.getHeight(), W1 = first_image.getWidth();
+    int H2 = second_image.getHeight(), W2 = second_image.getWidth();
+    Image merged_image(std::max(H1, H2), W1 + W2);
+
+    for(int i = 0; i < H1; i++)
+        for(int j = 0; j < W1; j++)
+            merged_image.set(i, j, first_image.get(i,j));
+
+    for(int i = 0; i < H2; i++)
+        for(int j = 0; j < W2; j++)
+            merged_image.set(i, j + W1, second_image.get(i,j));
+
+    auto qimage = toQImage(merged_image);
+
+    QPainter painter(&qimage);
+
+    for(const auto& match : matches){
+        auto x1 = first_blobs[match.first].y;
+        auto y1 = first_blobs[match.first].x;
+        auto x2 = second_blobs[match.second].y;
+        auto y2 = second_blobs[match.second].x;
+
+        int r = qrand() % 256, g = qrand() % 256, b = qrand() % 256;
+        auto color = QColor(r, g, b);
+
+        painter.setPen(color);
+        painter.drawLine(x1, y1, x2 + W1, y2);
+
+        painter.setPen(color);
+        drawAroundPoint(painter, x1, y1);
+        drawAroundPoint(painter, x2 + W1, y2);
+    }
+
+    return qimage;
+}
+
 }
