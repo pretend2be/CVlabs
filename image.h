@@ -17,8 +17,8 @@ enum class Border{
 class Image : public Matrix
 {
 public:
-    Image(int height, int width, Border border = Border::Copy);
-    Image(const QImage& image, Border border = Border::Copy);
+    Image(int height, int width, Border border = Border::Mirror);
+    Image(const QImage& image, Border border = Border::Mirror);
     Image(const Image& image);
 
     Image& operator=(const Image& image){
@@ -33,6 +33,9 @@ public:
         return *this;
     }
 
+    friend Image operator-(const Image& left, const Image& right);
+    friend Image operator/(const Image& left, const double value);
+
     double get(int row, int col) const;
 
     Border getBorderE();
@@ -41,10 +44,6 @@ public:
 
     Image getNormalized() const;
     Image getDownscale() const;
-
-    //void save(QString file);
-    /*void save(const std::string& file);
-    void save(const std::string& file, const poi::IPoints& points);*/
 
 private:
     std::pair<int, int> getCopyIdxs(int row, int col) const;

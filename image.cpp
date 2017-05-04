@@ -28,6 +28,25 @@ Image::Image(const Image& image)
             set(i, j, image.get(i, j));
 }
 
+Image operator-(const Image& left, const Image& right){
+    if(left.getHeight() == right.getHeight() && left.getWidth() == right.getWidth()){
+        auto H = left.getHeight(), W = left.getWidth();
+        Image result(H, W);
+        for(int i = 0; i < H; i++)
+            for(int j = 0; j < W; j++)
+                result.set(i, j, left.get(i, j) - right.get(i, j));
+        return result;
+    }
+}
+
+Image operator/(const Image& left, const double value) {
+    Image result(left.getHeight(), left.getWidth());
+    std::transform(left.begin(), left.end(), result.begin(), [value](const auto& intensity) {
+        return intensity / value;
+    });
+    return result;
+}
+
 Border Image::getBorderE(){
     return BorderE;
 }
@@ -64,61 +83,6 @@ Image Image::getDownscale() const{
 
     return result;
 }
-
-/*void Image::save(QString file){
-    auto H = getHeight(), W = getWidth();
-    QImage pic(W, H, QImage::Format_RGB32);
-
-    auto normalized = getNormalized();
-
-    for(int y = 0; y < H; y++)
-        for(int x = 0; x < W; x++){
-            auto color = int(normalized.get(y, x) * 255);
-            pic.setPixel(x, y, qRgb(color, color, color));
-        }
-
-    pic.save(file);
-}*/
-
-/*void Image::save(const std::string& file){
-    auto H = getHeight(), W = getWidth();
-    QImage pic(W, H, QImage::Format_RGB32);
-
-    for(int y = 0; y < H; y++)
-        for(int x = 0; x < W; x++){
-            auto color = int(get(y, x) * 255);
-            pic.setPixel(x, y, qRgb(color, color, color));
-        }
-
-    pic.save(file.c_str());
-}
-
-/*void Image::save(const std::string& file, const IPoints& points){
-    auto H = getHeight();
-    auto W = getWidth();
-    auto size = points.size();
-    QImage pic(W, H, QImage::Format_RGB32);
-
-    for(int y = 0; y < H; y++)
-        for(int x = 0; x < W; x++){
-            auto color = int(get(y, x) * 255);
-            pic.setPixel(x, y, qRgb(color, color, color));
-        }
-
-    QPainter painter(&pic);
-    painter.setPen(Qt::red);
-
-    for(int i = 0; i < size; i++){
-        auto x = std::get<0>(points[i]);
-        auto y = std::get<1>(points[i]);
-        painter.drawPoint(x - 1, y);
-        painter.drawPoint(x, y - 1);
-        painter.drawPoint(x + 1, y);
-        painter.drawPoint(x, y + 1);
-    }
-
-    pic.save(file.c_str());
-}*/
 
 double Image::get(int row, int col) const{
     if (Matrix::inRange(row, col)) {

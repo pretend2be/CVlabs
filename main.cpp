@@ -11,10 +11,12 @@ void Lab1();
 void Lab2();
 void Lab3();
 void Lab4();
+void Lab5();
+void Lab6();
 
 int main()
 {
-    Lab4();
+    Lab6();
 
     return 0;
 }
@@ -48,11 +50,11 @@ void Lab1(){
 }
 
 void Lab2(){
-    QImage qimageorig("E:\\Magistr\\CV\\image1.png");
+    QImage qimageorig("E:\\Magistr\\CV\\m.png");
     cv::Image original(qimageorig);
 
-    cv::Pyramid pyramid(original, 1.6, 0.5, 5, 5);
-    pyramid.savePyramid("E:\\Magistr\\CV\\1\\");
+    cv::Pyramid pyramid = cv::getGaussPyramid(original, 1.6, 0.5, 5, 5);
+    cv::savePyramid(pyramid, "E:\\Magistr\\CV\\3\\");
     printf("done");
 }
 
@@ -74,16 +76,48 @@ void Lab3(){
 }
 
 void Lab4(){
-    QImage qimage1("E:\\Magistr\\CV\\Lenna1.png");
-    QImage qimage2("E:\\Magistr\\CV\\Lenna1.png");
+    QImage qimage1("E:\\Magistr\\CV\\m.png");
+    QImage qimage2("E:\\Magistr\\CV\\m.png");
+
+    QTransform rotating;
+    rotating.rotate(37);
+    qimage2 = qimage2.transformed(rotating);
+    //qimage2.save("E:\\Magistr\\CV\\m90'.png");
+
     cv::Image image1(qimage1);
     cv::Image image2(qimage2);
 
     auto harris_first = cv::Harris(image1, 3);
     auto harris_second = cv::Harris(image2, 3);
 
-    auto first_poi = cv::getPoi(harris_first, 0.55, 3);
-    auto second_poi = cv::getPoi(harris_second, 0.55, 3);
+    auto first_poi = cv::getPoi(harris_first, 5.0, 5);
+    auto second_poi = cv::getPoi(harris_second, 5.0, 5);
+
+    auto first_filtered = cv::filterPoints(first_poi, 1000);
+    auto second_filtered = cv::filterPoints(second_poi, 1000);
+
+    auto first_descriptors = cv::getDescriptors(image1, first_filtered, 4, 4, 8);
+    auto second_descriptors = cv::getDescriptors(image2, second_filtered, 4, 4, 8);
+
+    auto matches = cv::getMatches(first_descriptors, second_descriptors);
+
+    std::cout << matches.size() << std::endl;
+
+    cv::drawMatches(image1, first_filtered, image2, second_filtered, matches).save("E:\\Magistr\\CV\\test9.png");
+    printf("done");
+}
+
+void Lab5(){
+    QImage qimage1("E:\\Magistr\\CV\\m.png");
+    QImage qimage2("E:\\Magistr\\CV\\m.png");
+    cv::Image image1(qimage1);
+    cv::Image image2(qimage2);
+
+    auto harris_first = cv::Harris(image1, 3);
+    auto harris_second = cv::Harris(image2, 3);
+
+    auto first_poi = cv::getPoi(harris_first, 0.6, 3);
+    auto second_poi = cv::getPoi(harris_second, 0.6, 3);
 
     auto first_filtered = cv::filterPoints(first_poi, 50);
     auto second_filtered = cv::filterPoints(second_poi, 50);
@@ -93,6 +127,29 @@ void Lab4(){
 
     auto matches = cv::getMatches(first_descriptors, second_descriptors);
 
-    cv::drawMatches(image1, first_filtered, image2, second_filtered, matches).save("E:\\Magistr\\CV\\matches4.png");
+    cv::drawMatches(image1, first_filtered, image2, second_filtered, matches).save("E:\\Magistr\\CV\\test1.png");
+    printf("done");
+}
+
+void Lab6(){
+    QImage qimage1("E:\\Magistr\\CV\\m.png");
+    QImage qimage2("E:\\Magistr\\CV\\m.png");
+
+    size_t w = qimage2.width() / 1.5;
+    size_t h = qimage2.height() / 1.5;
+    qimage2 = qimage2.scaled(w, h, Qt::KeepAspectRatio);
+    qimage2.save("E:\\Magistr\\CV\\scaled.png");
+
+    cv::Image image1(qimage1);
+    cv::Image image2(qimage2);
+
+    auto first_descriptors = cv::getDescriptors(image1, 16, 8);
+    auto second_descriptors = cv::getDescriptors(image2, 16, 8);
+
+    auto matches = cv::getMatches(std::get<0>(first_descriptors), std::get<0>(second_descriptors));
+
+    std::cout << matches.size() << std::endl;
+
+    cv::drawMatches(image1, std::get<1>(first_descriptors), image2, std::get<1>(second_descriptors), matches).save("E:\\Magistr\\CV\\test10.png");
     printf("done");
 }
