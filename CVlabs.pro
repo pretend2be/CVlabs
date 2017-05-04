@@ -13,8 +13,6 @@ SOURCES += main.cpp \
     matrix.cpp \
     image.cpp \
     pyramid.cpp \
-    pyramidlvl.cpp \
-    pyramidoctave.cpp \
     filters.cpp \
     poi.cpp \
     qimagemaker.cpp \
@@ -27,8 +25,6 @@ HEADERS += \
     image.h \
     kernels.h \
     pyramid.h \
-    pyramidlvl.h \
-    pyramidoctave.h \
     filters.h \
     poi.h \
     qimagemaker.h \
