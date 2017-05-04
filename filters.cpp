@@ -2,6 +2,7 @@
 #include "filters.h"
 #include "kernels.h"
 #include <numeric>
+#include <array>
 
 namespace cv {
 
@@ -55,6 +56,15 @@ Image SeparableConvolution(const Image& image, const double* rows, const double*
     return result;
 }
 
+double getGradientValue(double gx, double gy) {
+    return sqrt(gx * gx + gy * gy);
+}
+
+double getGradientDirection(double gx, double gy) {
+    auto angle = atan2(gy, gx);
+    return angle >= 0 ? angle : angle + M_PI * 2;
+}
+
 Image SobelDx(const Image& image){
     Matrix kernelX(3, 3, kernelSobelX);
     auto result = Convolution(image, kernelX);
@@ -74,7 +84,7 @@ Image SobelGradient(const Image& dx, const Image& dy){
     for(int i = 0; i < H; i++)
         for(int j = 0; j < W; j++){
             double x = dx.get(i, j), y = dy.get(i, j);
-            auto gradient = sqrt(x*x+y*y);
+            auto gradient = getGradientValue(x, y);
             result.set(i, j, gradient);
         }
 
@@ -87,8 +97,7 @@ Image GradientDirections(const Image& dx, const Image& dy){
 
     for (int i = 0; i < H; i++) {
         for (int j = 0; j < W; j++) {
-            auto direction = atan2(dx.get(i, j), dy.get(i, j));
-            direction = direction > 0 ? direction : direction + M_PI * 2;
+            auto direction = getGradientDirection(dx.get(i, j), dy.get(i, j));
             result.set(i, j, direction);
         }
     }
@@ -109,7 +118,7 @@ Image Blur(const Image& image){
 }
 
 Matrix getGaussKernel(double sigma){
-    int kernel_size = int(std::ceil(sigma)) * 6 + 1;
+    int kernel_size = int(std::ceil(3 * sigma)) * 2 + 1;
     Matrix kernel(kernel_size,kernel_size);
 
     int half = kernel_size / 2;
@@ -137,12 +146,57 @@ Image GaussianFilterSeparable(const Image& image, double sigma){
 
     double* rows = new double[kernel_size];
     double* cols = new double[kernel_size];
+    double sum = 0.0;
 
-    for(int i = 0; i < kernel_size; i++)
-        rows[i] = cols[i] = sqrt(kernel.get(i,i));
+    for(int i = 0; i < kernel_size; i++){
+        sum += sqrt(kernel.get(i,i));
+    }
+
+    for(int i = 0; i < kernel_size; i++){
+        rows[i] = cols[i] = sqrt(kernel.get(i,i)) / sum;
+    }
 
     auto result = SeparableConvolution(image, rows, cols, kernel_size);
     return result;
+}
+
+static double getDerivative(double v1, double v2) {
+    return (-v1 + v2) / 2;
+}
+
+double getDx(const Image& image, int row, int col) {
+    return getDerivative(image.get(row, col - 1), image.get(row, col + 1));
+}
+
+double getDy(const Image& image, int row, int col) {
+    return getDerivative(image.get(row - 1, col), image.get(row + 1, col));
+}
+
+static const std::array<double, 5> Second_Derivative{ {0.232905, 0.002668, -0.471147, 0.002668, 0.232905} };
+
+double getDx2(const Image &image, int row, int col){
+    double sum = 0;
+    auto half = int(Second_Derivative.size()) / 2;
+    for (size_t i = 0, size = Second_Derivative.size(); i < size; i++) {
+        sum += Second_Derivative[i] * image.get(row, col - half + int(i));
+    }
+    return sum;
+}
+
+double getDy2(const Image& image, int row, int col) {
+    double sum = 0;
+    auto half = int(Second_Derivative.size()) / 2;
+    for (size_t i = 0, size = Second_Derivative.size(); i < size; i++) {
+        sum += Second_Derivative[i] * image.get(row - half + int(i), col);
+    }
+    return sum;
+}
+
+double getDxDy(const Image& image, int row, int col) {
+    auto dx_top = getDx(image, row - 1, col);
+    auto dx_bottom = getDx(image, row + 1, col);
+    auto dxdy = getDerivative(dx_top, dx_bottom);
+    return dxdy;
 }
 
 }
