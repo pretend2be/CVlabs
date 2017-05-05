@@ -13,7 +13,7 @@ static double getVectorLength(const Descriptor& descriptor){
 }
 
 static int mod(int x, int mod){
-    return (x + mod) % mod;
+    return (x % mod + mod) % mod;
 }
 
 static Descriptors Normalize(Descriptors& descriptors){
@@ -164,13 +164,6 @@ std::tuple<Descriptors, Blobs> getDescriptors(const Image& _image, int _grid_siz
                 auto gradient_value = getGradientValue(dx, dy);
                 auto gradient_direction = getGradientDirection(dx, dy) - angle;
 
-                auto first_bin_idx = int(gradient_direction / bin_size);
-                auto distance_to_bin_center = gradient_direction - first_bin_idx * bin_size - bin_size / 2;
-                auto second_bin_idx = distance_to_bin_center > 0 ? first_bin_idx + 1 : first_bin_idx - 1;
-
-                first_bin_idx = mod(first_bin_idx, histogram_size);
-                second_bin_idx = mod(second_bin_idx, histogram_size);
-
                 auto new_i = int((i - grid_half) * cos(angle) - (j - grid_half) * sin(angle));
                 auto new_j = int((i - grid_half) * sin(angle) + (j - grid_half) * cos(angle));
 
@@ -178,13 +171,30 @@ std::tuple<Descriptors, Blobs> getDescriptors(const Image& _image, int _grid_siz
                 new_j += grid_half;
 
                 if(new_i >= 0 && new_i < grid_size && new_j >= 0 && new_j < grid_size){
-                    auto histogram_start_idx = (4 * std::min(int(new_i / block_size), 3) + std::min(int(new_j / block_size), 3)) * histogram_size;
+                    auto histogram_x = std::min(int(round(new_i / block_size)), 3);
+                    auto histogram_y = std::min(int(round(new_j / block_size)), 3);
+                    auto histogram_angle = int(round(gradient_direction / bin_size));
 
-                    auto second_percent = fabs(distance_to_bin_center) / bin_size;
-                    auto first_percent = 1 - second_percent;
-
-                    descriptor[size_t(histogram_start_idx + first_bin_idx)] += first_percent * gradient_value;
-                    descriptor[size_t(histogram_start_idx + second_bin_idx)] += second_percent * gradient_value;
+                    for(int x = histogram_x - 1; x <= histogram_x; x++){
+                        if(x >= 0){
+                            auto distance_to_cetner_x = fabs(new_i - (block_size * x + block_size / 2));
+                            auto percent_x = 1 - distance_to_cetner_x / block_size;
+                            for(int y = histogram_y - 1; y <= histogram_y; y++){
+                                if(y >= 0){
+                                    auto distance_to_cetner_y = fabs(new_j - (block_size * y + block_size / 2));
+                                    auto percent_y = 1 - distance_to_cetner_y / block_size;
+                                    for(int a = histogram_angle - 1; a <= histogram_angle; a++){
+                                        auto bin_index = mod(a, histogram_size);
+                                        auto distance_to_center_bin = fabs(gradient_direction -
+                                                                           ( bin_size * a + bin_size / 2));
+                                        auto percent_angle = 1 - distance_to_center_bin / bin_size;
+                                        auto index = (4 * x + y) * histogram_size + bin_index;
+                                        descriptor[size_t(index)] += gradient_value * percent_x * percent_y * percent_angle;
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
     }
@@ -302,13 +312,13 @@ Descriptors getDescriptors(const Image& image, IPoints& points,
 
                 if(new_i >= 0 && new_i < grid_size && new_j >= 0 && new_j < grid_size){
 
-                auto histogram_start_idx = (new_i / grid_size + new_j / block_size_px) * histogram_size;
+                    auto histogram_start_idx = (new_i / grid_size + new_j / block_size_px) * histogram_size;
 
-                auto second_percent = fabs(distance_to_bin_center) / bin_size;
-                auto first_percent = 1 - second_percent;
+                    auto second_percent = fabs(distance_to_bin_center) / bin_size;
+                    auto first_percent = 1 - second_percent;
 
-                descriptor[size_t(histogram_start_idx + first_bin_idx)] += first_percent * gradient_value;
-                descriptor[size_t(histogram_start_idx + second_bin_idx)] += second_percent * gradient_value;
+                    descriptor[size_t(histogram_start_idx + first_bin_idx)] += first_percent * gradient_value;
+                    descriptor[size_t(histogram_start_idx + second_bin_idx)] += second_percent * gradient_value;
                 }
             }
     }
@@ -414,7 +424,6 @@ const bool isExtremum(const Octave& octave, size_t _k, int _i, int _j){
 Blobs getBlobs(const Pyramid &pyramid){
     auto dog = getDoG(pyramid);
     double R = 10.0;
-    savePyramid(dog, "E:\\Magistr\\CV\\4\\");
 
     Blobs blobs;
     int scale = 1;

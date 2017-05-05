@@ -12,11 +12,11 @@ void Lab2();
 void Lab3();
 void Lab4();
 void Lab5();
-void Lab6();
+void Lab6_7();
 
 int main()
 {
-    Lab6();
+    Lab6_7();
 
     return 0;
 }
@@ -79,10 +79,7 @@ void Lab4(){
     QImage qimage1("E:\\Magistr\\CV\\m.png");
     QImage qimage2("E:\\Magistr\\CV\\m.png");
 
-    QTransform rotating;
-    rotating.rotate(37);
-    qimage2 = qimage2.transformed(rotating);
-    //qimage2.save("E:\\Magistr\\CV\\m90'.png");
+
 
     cv::Image image1(qimage1);
     cv::Image image2(qimage2);
@@ -109,18 +106,24 @@ void Lab4(){
 
 void Lab5(){
     QImage qimage1("E:\\Magistr\\CV\\m.png");
-    QImage qimage2("E:\\Magistr\\CV\\m.png");
+    QImage qimage2("E:\\Magistr\\CV\\m.png");    
+
+    QTransform rotating;
+    rotating.rotate(18);
+    qimage2 = qimage2.transformed(rotating);
+    qimage2.save("E:\\Magistr\\CV\\m18'.png");
+
     cv::Image image1(qimage1);
     cv::Image image2(qimage2);
 
     auto harris_first = cv::Harris(image1, 3);
     auto harris_second = cv::Harris(image2, 3);
 
-    auto first_poi = cv::getPoi(harris_first, 0.6, 3);
-    auto second_poi = cv::getPoi(harris_second, 0.6, 3);
+    auto first_poi = cv::getPoi(harris_first, 5.0, 5);
+    auto second_poi = cv::getPoi(harris_second, 5.0, 5);
 
-    auto first_filtered = cv::filterPoints(first_poi, 50);
-    auto second_filtered = cv::filterPoints(second_poi, 50);
+    auto first_filtered = cv::filterPoints(first_poi, 1000);
+    auto second_filtered = cv::filterPoints(second_poi, 1000);
 
     auto first_descriptors = cv::getDescriptors(image1, first_filtered, 4, 4, 8);
     auto second_descriptors = cv::getDescriptors(image2, second_filtered, 4, 4, 8);
@@ -131,7 +134,7 @@ void Lab5(){
     printf("done");
 }
 
-void Lab6(){
+void Lab6_7(){
     QImage qimage1("E:\\Magistr\\CV\\m.png");
     QImage qimage2("E:\\Magistr\\CV\\m.png");
 
@@ -150,6 +153,6 @@ void Lab6(){
 
     std::cout << matches.size() << std::endl;
 
-    cv::drawMatches(image1, std::get<1>(first_descriptors), image2, std::get<1>(second_descriptors), matches).save("E:\\Magistr\\CV\\test10.png");
+    cv::drawMatches(image1, std::get<1>(first_descriptors), image2, std::get<1>(second_descriptors), matches).save("E:\\Magistr\\CV\\test.png");
     printf("done");
 }

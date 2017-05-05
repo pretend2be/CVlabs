@@ -105,12 +105,11 @@ QImage drawMatches(const Image& first_image, const Blobs& first_blobs,
         auto y2 = second_blobs[match.second].x;
 
         int r = qrand() % 256, g = qrand() % 256, b = qrand() % 256;
-        auto color = QColor(r, g, b);
 
-        painter.setPen(color);
+        painter.setPen(QColor(r, g, b, 128));
         painter.drawLine(x1, y1, x2 + W1, y2);
 
-        painter.setPen(color);
+        painter.setPen(QColor(r, g, b, 255));
         drawAroundPoint(painter, x1, y1);
         drawAroundPoint(painter, x2 + W1, y2);
     }
